@@ -383,7 +383,7 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
     const journeySteps = [
         {
             title: "Ready...", text: "Click 'Next Step' to follow the immersive online-to-offline journey.",
-            bg:bgStreet, label: "Outside DRIP Store",
+            bg:"/images/cork-street.jpg", label: "Outside DRIP Store",
             positions: { user: "pos-off-left", sophie: "pos-off-right", clothes: "pos-off-right", cilian: "pos-off-right", phone: "pos-off-bottom", voucher: "pos-off-bottom", recycleBox: "pos-off-right" },
             status: "", progress: "", anim: []
         },
@@ -436,7 +436,7 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
         {
             title: "Branch A: App Map & Smart Bin",
             text: "User locates a bin via the App map, walks to the street, and drops the item. The Smart Bin instantly pushes a digital Voucher to the App.",
-            bg: bgStreet, label: "📍 City Street",
+            bg: "/images/cork-street.jpg", label: "📍 City Street",
             positions: { user: "pos-left", clothes: "pos-center pos-broken", recycleBox: "pos-right-center", phone: "pos-item-user-right" },
             status: "📲 Notification: Voucher Received!", progress: "p-recycle",
             anim: ['user.walking', 'phone.show-badge'] // App shows a red notification dot
