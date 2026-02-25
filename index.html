@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DRIP Immersive O2O User Journey</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+    --drip-green: #39FF14; /* 赛博朋克霓虹绿 */
+    --bg-color: #111111;
+    --card-bg: #222222;
+    --text-main: #eeeeee;
+}
+
+body {
+    /* 正文使用 VT323，阅读性好一点的像素体 */
+    font-family: 'VT323', monospace; 
+    background-color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    color: var(--text-main);
+    font-size: 22px;
+}
+
+/* 所有的图片强制不进行平滑抗锯齿处理，保持像素颗粒感 */
+img {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+}
+
+/* 核心容器：硬边缘，厚重阴影 */
+.container {
+    background-color: var(--card-bg);
+    width: 95%;
+    max-width: 950px;
+    border: 4px solid #fff; /* 去掉圆角，改为粗边框 */
+    box-shadow: 10px 10px 0px var(--drip-green); /* 像素风标志性的硬阴影 */
+    padding: 20px;
+    position: relative;
+}
+
+/* 顶部进度条 */
+.progress-bar {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding: 0 10px;
+    font-size: 1.2em;
+    color: #555;
+    font-family: 'Press Start 2P', cursive; /* 标题使用复古街机体 */
+    font-size: 10px;
+    text-transform: uppercase;
+}
+.progress-step.active { color: var(--drip-green); text-shadow: 2px 2px 0 #000; }
+
+/* 舞台背景区 */
+.stage {
+    height: 420px;
+    background-color: #000;
+    background-size: cover;
+    background-position: center;
+    border: 4px solid #555;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: background-image 0s; /* 像素风不需要平滑渐变，直接切换更复古 */
+    /* 给背景照片加一层像素化滤镜效果 (对比度拉高，稍微灰度化) */
+    filter: contrast(1.2) sepia(0.2); 
+}
+
+.stage::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1;
+}
+
+/* 场景标签 */
+.scene-label {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: #000;
+    color: var(--drip-green);
+    padding: 8px 14px;
+    border: 2px solid var(--drip-green);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    z-index: 10;
+    box-shadow: 4px 4px 0 rgba(0,0,0,1);
+}
+
+/* 角色与物品 */
+.element {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.5s steps(10); /* 使用 steps 函数，让移动产生一格一格的像素跳跃感 */
+    width: 90px;
+    text-align: center;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    color: white;
+    z-index: 10;
+    text-shadow: 2px 2px 0 #000;
+    margin-top: 10px;
+}
+
+/* 头像/物品框：改为方块形 */
+.element-icon {
+    width: 60px;
+    height: 60px;
+    background-color: #333 !important; /* 统一底色 */
+    border: 3px solid #fff !important; /* 强制白边框 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    box-shadow: 4px 4px 0 #000;
+    margin-bottom: 8px;
+    overflow: hidden; /* 如果放入图片，确保不溢出 */
+}
+
+/* 状态提示框 */
+.exchange-status {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    color: #fff;
+    background: #000;
+    border: 3px solid #FF9800;
+    padding: 15px 20px;
+    opacity: 0;
+    transition: opacity 0.2s steps(2) 0.6s; 
+    z-index: 5;
+    box-shadow: 6px 6px 0 rgba(0,0,0,1);
+}
+.exchange-status.active { opacity: 1; }
+
+/* App 通知红点 */
+.app-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #f44336;
+    color: white;
+    width: 20px;
+    height: 20px;
+    font-size: 14px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid white;
+    opacity: 0;
+}
+.show-badge .app-badge { opacity: 1; }
+
+/* 剧情文字框 */
+.narrative-box {
+    background-color: #000;
+    padding: 20px;
+    border: 3px solid #555;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+.narrative-title { 
+    font-family: 'Press Start 2P', cursive; 
+    font-size: 12px; 
+    margin-bottom: 15px; 
+    display: block; 
+    color: var(--drip-green);
+}
+
+/* 游戏手柄式的按钮 */
+.controls { display: flex; justify-content: center; gap: 20px; }
+button {
+    font-family: 'Press Start 2P', cursive;
+    padding: 15px 20px; 
+    background-color: var(--drip-green); 
+    color: #000;
+    border: 3px solid #fff; 
+    font-size: 10px; 
+    cursor: pointer; 
+    box-shadow: 4px 4px 0 #fff;
+    text-transform: uppercase;
+}
+button:hover { 
+    background-color: #fff; 
+    transform: translate(2px, 2px); 
+    box-shadow: 2px 2px 0 #fff;
+}
+button.secondary { background-color: #555; color: #fff; border-color: #777; box-shadow: 4px 4px 0 #777; }
+button:disabled { background-color: #222; color: #555; border-color: #333; box-shadow: none; cursor: not-allowed; transform: none; }
+
+#branch-controls { display: none; justify-content: center; gap: 15px; }
+
+/* --- 站位代码保持不变，只重写动画 --- */
+.pos-off-left { left: -120px; top: 50%; opacity: 0; }
+.pos-off-right { right: -120px; top: 50%; opacity: 0; }
+.pos-off-bottom { left: 50%; bottom: -100px; transform: translateX(-50%); opacity: 0; }
+.pos-left { left: 15%; top: 55%; opacity: 1; }
+.pos-left-center { left: 30%; top: 55%; opacity: 1; }
+.pos-right-center { right: 30%; top: 55%; opacity: 1; }
+.pos-right { right: 15%; top: 55%; opacity: 1; }
+.pos-center { left: 50%; top: 55%; transform: translateX(-50%); opacity: 1; }
+.pos-item-user-left { left: 18%; top: 60%; transform: scale(0.8); opacity: 1; }
+.pos-item-user-right { left: 40%; top: 60%; transform: scale(0.8); opacity: 1; }
+.pos-item-staff { right: 40%; top: 60%; transform: scale(0.8); opacity: 1; }
+.pos-item-center-right { left: 58%; top: 60%; transform: scale(0.8); opacity: 1; }
+.pos-broken { filter: grayscale(100%) opacity(0.5); } 
+
+/* 像素风特有的僵硬抖动动画 */
+.walking .element-icon { animation: pixel-walk 0.3s steps(2) infinite; }
+@keyframes pixel-walk {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+}
+.ringing .element-icon { animation: pixel-ring 0.2s steps(2) infinite; }
+@keyframes pixel-ring {
+    0% { transform: translateX(-4px); border-color: red !important; }
+    100% { transform: translateX(4px); border-color: white !important;}
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="progress-bar">
+        <span id="p-buy" class="progress-step active">Purchase</span>
+        <span>→</span>
+        <span id="p-use">Use & Book</span>
+        <span>→</span>
+        <span id="p-repair">Repair</span>
+        <span>→</span>
+        <span id="p-recycle">Recycle UI</span>
+        <span>→</span>
+        <span id="p-feedback">Review</span>
+    </div>
+
+    <div class="stage" id="stage">
+        <div class="scene-label" id="scene-label">⏳ Loading Environment...</div>
+
+        <div id="status-bar" class="exchange-status">↔</div>
+
+        <div id="user" class="element actor-user pos-off-left">
+            <div class="element-icon">
+                <img src="/images/user.png" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>User
+        </div>
+        <div id="sophie" class="element actor-staff pos-off-right">
+            <div class="element-icon">
+                <img src="/images/staff.png" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>Sophie
+        </div>
+        <div id="clothes" class="element object-clothes pos-off-right">
+            <div class="element-icon">
+                <img src="/images/clothes.png" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>Garment
+        </div>
+        <div id="cilian" class="element actor-staff pos-off-right">
+            <div class="element-icon">
+            <img src="/images/deliver.png" style="width: 100%; height: 100%; object-fit: cover;"></div>Cilian</div>
+        <div id="recycleBox" class="element pos-off-right">
+            <div class="element-icon">
+                <img src="/images/bin.png" style="width: 100%; height: 100%; object-fit: cover;"></div>Smart Bin</div>
+        
+        <div id="phone" class="element object-phone pos-off-bottom">
+            <div class="element-icon">
+                <img src="/images/map.png" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="app-badge">1</div>
+            </div>DRIP App
+        </div>
+        <div id="voucher" class="element object-voucher pos-off-bottom"><div class="element-icon">🎟️</div>Voucher</div>
+    </div>
+
+    <div class="narrative-box">
+        <span id="narrative-title" class="narrative-title">Initializing...</span>
+        <span id="narrative-text">Welcome to the DRIP O2O Service Blueprint.</span>
+    </div>
+
+    <div class="controls" id="main-controls">
+        <button id="prevBtn" class="secondary" disabled>Previous</button>
+        <button id="nextBtn">Next Step</button>
+    </div>
+    
+    <div class="controls" id="branch-controls">
+        <button id="branchA" style="background-color: #FF9800;">A. Find Smart Bin (App Map)</button>
+        <button id="branchB" style="background-color: #2196F3;">B. Book Cilian (App Pickup)</button>
+    </div>
+</div>
+
+<script>
+    // Stable Image IDs + Fallback background colors defined via JS to style property
+    const bgStore = { url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1000&q=80", color: "#6d4c41" }; 
+    const bgHome = { url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1000&q=80", color: "#546e7a" };  
+    const bgStreet = { url: "https://images.unsplash.com/photo-1514924013411-cce2d6fea10b?w=1000&q=80", color: "#37474f" }; 
+    const bgDigital = { url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1000&q=80", color: "#4527a0" }; 
+
+    const journeySteps = [
+        {
+            title: "Ready...", text: "Click 'Next Step' to follow the immersive online-to-offline journey.",
+            bg: bgStore, label: "Outside DRIP Store",
+            positions: { user: "pos-off-left", sophie: "pos-off-right", clothes: "pos-off-right", cilian: "pos-off-right", phone: "pos-off-bottom", voucher: "pos-off-bottom", recycleBox: "pos-off-right" },
+            status: "", progress: "", anim: []
+        },
+        // Scene 1: Offline Store
+        {
+            title: "Scene 1: Offline Purchase",
+            text: "User walks into the physical store. Sophie explains the repair/recycle promise. The physical garment is handed over.",
+            bg: bgStore, label: "📍 DRIP Store",
+            positions: { user: "pos-left-center", sophie: "pos-right-center", clothes: "pos-item-staff" },
+            status: "🛍️ Purchase Completed", progress: "p-buy",
+            anim: ['user.walking']
+        },
+        // Scene 2: Home & Damage
+        {
+            title: "Scene 2: Daily Use & Damage",
+            text: "Back at home, the item gets damaged during daily wear. The user needs a repair.",
+            bg: bgHome, label: "📍 User's Home",
+            positions: { user: "pos-center", sophie: "pos-off-right", clothes: "pos-center pos-broken" },
+            status: "⚠️ Garment Damaged", progress: "p-use",
+            anim: []
+        },
+        // Scene 3: App Interaction (NEW)
+        {
+            title: "Scene 3: Digital Booking (DRIP App)",
+            text: "User opens the DRIP App on their phone to book a repair slot. The digital touchpoint seamlessly connects them back to the store.",
+            bg: bgHome, label: "📍 User's Home",
+            positions: { user: "pos-left-center", clothes: "pos-item-user-left pos-broken", phone: "pos-center" },
+            status: "📱 Booking Repair in App...", progress: "p-use",
+            anim: ['phone.ringing'] // simulate notification/active screen
+        },
+        // Scene 4: Repair
+        {
+            title: "Scene 4: In-Store Repair",
+            text: "User travels back to the store based on their app booking. Sophie repairs the garment, maintaining the brand's sustainable promise.",
+            bg: bgStore, label: "📍 DRIP Store",
+            positions: { user: "pos-left-center", sophie: "pos-right-center", clothes: "pos-item-staff", phone: "pos-off-bottom" },
+            status: "🔨 Repair in Progress", progress: "p-repair",
+            anim: ['user.walking']
+        },
+        // Scene 5: Recycle Decision
+        {
+            title: "Scene 5: The Recycling Decision (App UI)",
+            text: "Time passes. The user wants to recycle. They open the DRIP app to explore options: check the map for a bin, or book a home pickup?",
+            bg: bgHome, label: "📍 User's Home",
+            positions: { user: "pos-left-center", phone: "pos-center", clothes: "pos-item-user-left pos-broken", sophie: "pos-off-right" },
+            status: "📱 App: Choose Recycle Method", progress: "p-recycle",
+            isBranch: true, anim: []
+        },
+        // Branch A: Smart Bin
+        {
+            title: "Branch A: App Map & Smart Bin",
+            text: "User locates a bin via the App map, walks to the street, and drops the item. The Smart Bin instantly pushes a digital Voucher to the App.",
+            bg: bgStreet, label: "📍 City Street",
+            positions: { user: "pos-left", clothes: "pos-center pos-broken", recycleBox: "pos-right-center", phone: "pos-item-user-right" },
+            status: "📲 Notification: Voucher Received!", progress: "p-recycle",
+            anim: ['user.walking', 'phone.show-badge'] // App shows a red notification dot
+        },
+        // Branch B: Cilian Pickup
+        {
+            title: "Branch B: App Booking & Logistics",
+            text: "User requests pickup in the App. Cilian arrives at the door, evaluates the item, and triggers a high-value digital Voucher directly to the user's phone.",
+            bg: bgHome, label: "📍 User's Home (Doorstep)",
+            positions: { user: "pos-left-center", clothes: "pos-center pos-broken", cilian: "pos-right-center", phone: "pos-item-user-left" },
+            status: "📲 Notification: High-Value Voucher!", progress: "p-recycle",
+            anim: ['cilian.walking', 'phone.show-badge']
+        },
+        // Scene 6: Review & Digital Wallet
+        {
+            title: "Scene 6: Digital Wallet & Review",
+            text: "User checks their digital wallet on the App to see the Voucher. They leave a 5-star review, ready to use the voucher for their next sustainable purchase.",
+            bg: bgDigital, label: "📍 Digital Space (DRIP App)",
+            positions: { user: "pos-left-center", phone: "pos-center", voucher: "pos-item-center-right", cilian: "pos-off-right", recycleBox: "pos-off-right", clothes: "pos-off-right" },
+            status: "⭐⭐⭐⭐⭐ Review Submitted", progress: "p-feedback",
+            anim: []
+        }
+    ];
+
+    let currentStep = 0;
+    let previousStepIndex = 0; 
+
+    const elements = ['user', 'sophie', 'clothes', 'cilian', 'phone', 'voucher', 'recycleBox'];
+    const stage = document.getElementById('stage');
+    const sceneLabel = document.getElementById('scene-label');
+    const statusBar = document.getElementById('status-bar');
+    const title = document.getElementById('narrative-title');
+    const text = document.getElementById('narrative-text');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const mainControls = document.getElementById('main-controls');
+    const branchControls = document.getElementById('branch-controls');
+
+    function updateStage(stepIndex) {
+        const stepData = journeySteps[stepIndex];
+
+        // Texts
+        title.innerText = stepData.title;
+        text.innerText = stepData.text;
+        sceneLabel.innerHTML = stepData.label;
+        
+        document.querySelectorAll('.progress-step').forEach(el => el.classList.remove('active'));
+        if(stepData.progress) document.getElementById(stepData.progress).classList.add('active');
+
+        // Robust Background Handling
+        stage.style.backgroundColor = stepData.bg.color;
+        stage.style.backgroundImage = `url('${stepData.bg.url}')`;
+
+        // Status Bar
+        if(stepData.status) {
+            statusBar.innerHTML = stepData.status;
+            statusBar.classList.add('active');
+        } else {
+            statusBar.classList.remove('active');
+        }
+
+        // Clean classes
+        elements.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.className = el.className.replace(/pos-\S+/g, '').replace('walking', '').replace('ringing', '').replace('show-badge', '').trim(); 
+            }
+        });
+
+        // Apply new classes and animations
+        setTimeout(() => {
+            for (const [id, posClass] of Object.entries(stepData.positions)) {
+                const el = document.getElementById(id);
+                if(el) {
+                    const classesToAdd = posClass.split(' ');
+                    classesToAdd.forEach(cls => { if(cls) el.classList.add(cls); });
+                    
+                    // Handle specific animations defined in stepData.anim array (e.g., 'user.walking', 'phone.show-badge')
+                    if (stepData.anim) {
+                        stepData.anim.forEach(animStr => {
+                            const [animId, animType] = animStr.split('.');
+                            if (animId === id) {
+                                el.classList.add(animType);
+                                // Stop continuous animations after duration
+                                if (animType === 'walking' || animType === 'ringing') {
+                                    setTimeout(() => el.classList.remove(animType), 1200);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        }, 50);
+
+        // Navigation logic
+        prevBtn.disabled = stepIndex === 0;
+        
+        if (stepData.isBranch) {
+            mainControls.style.display = "none";
+            branchControls.style.display = "flex";
+            previousStepIndex = stepIndex; 
+        } else {
+            mainControls.style.display = "flex";
+            branchControls.style.display = "none";
+            if(stepIndex === 6 || stepIndex === 7) {
+                nextBtn.onclick = () => { updateStage(8); currentStep = 8; };
+            } else {
+                nextBtn.onclick = defaultNext;
+            }
+        }
+        currentStep = stepIndex;
+    }
+
+    const defaultNext = () => { if (currentStep < journeySteps.length - 1) updateStage(currentStep + 1); };
+    nextBtn.onclick = defaultNext;
+
+    prevBtn.onclick = () => {
+        if (currentStep > 0) {
+            if (currentStep === 6 || currentStep === 7) updateStage(previousStepIndex);
+            else updateStage(currentStep - 1);
+        }
+    };
+
+    document.getElementById('branchA').onclick = () => updateStage(6); 
+    document.getElementById('branchB').onclick = () => updateStage(7); 
+
+    // Initialize
+    updateStage(1); 
+</script>
+</body>
+</html>
