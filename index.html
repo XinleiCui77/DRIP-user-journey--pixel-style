@@ -235,6 +235,75 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
     0% { transform: translateX(-4px); border-color: red !important; }
     100% { transform: translateX(4px); border-color: white !important;}
 }
+
+/* =========================================
+   📱 手机端适配 (Responsive Design for Mobile) 
+   ========================================= */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+        font-size: 18px; /* 正文字体稍微改小 */
+    }
+
+    .container {
+        padding: 10px;
+        border-width: 2px; /* 边框变细一点 */
+        box-shadow: 6px 6px 0px var(--drip-green); /* 阴影也等比缩小 */
+    }
+
+    /* 1. 压低舞台高度，防止手机上一屏显示不全 */
+    .stage {
+        height: 320px; 
+    }
+
+    /* 2. 核心：缩小像素人物和物品 */
+    .element {
+        width: 80px; /* 从 140px 缩小到 80px，防止横向拥挤 */
+        font-size: 8px; /* 名字字体缩小 */
+    }
+
+    .element-icon {
+        height: 80px; /* 头像框高度同步缩小 */
+    }
+
+    /* 3. 顶部进度条优化：缩小字体，允许换行或者更紧凑 */
+    .progress-bar {
+        font-size: 7px;
+        padding: 0;
+        margin-bottom: 15px;
+    }
+    .progress-bar span {
+        text-align: center;
+    }
+
+    /* 4. 底部按钮优化：手机上横排太挤，改为竖排显示 */
+    .controls {
+        flex-direction: column; 
+        gap: 10px;
+    }
+    
+    #branch-controls {
+        flex-direction: column; 
+    }
+
+    button {
+        width: 100%; /* 按钮占满全宽，方便手指点击 */
+        padding: 12px;
+    }
+
+    /* 5. 提示框缩小 */
+    .exchange-status {
+        font-size: 10px;
+        padding: 10px;
+        width: 70%;
+        text-align: center;
+    }
+    
+    .scene-label {
+        font-size: 8px;
+        padding: 6px 10px;
+    }
+}
     </style>
 </head>
 <body>
@@ -308,13 +377,13 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
     // Stable Image IDs + Fallback background colors defined via JS to style property
     const bgStore = { url: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1000&q=80", color: "#6d4c41" }; 
     const bgHome = { url: "https://images.unsplash.com/photo-1513694203232-719a280e022f?w=1000&q=80", color: "#546e7a" };  
-    const bgStreet = { url: "https://images.unsplash.com/photo-1514924013411-cce2d6fea10b?w=1000&q=80", color: "#37474f" }; 
+    const bgStreet = { url: "/images/cork-street.jpg", color: "#37474f" }; 
     const bgDigital = { url: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1000&q=80", color: "#4527a0" }; 
 
     const journeySteps = [
         {
             title: "Ready...", text: "Click 'Next Step' to follow the immersive online-to-offline journey.",
-            bg: bgStore, label: "Outside DRIP Store",
+            bg:bgStreet, label: "Outside DRIP Store",
             positions: { user: "pos-off-left", sophie: "pos-off-right", clothes: "pos-off-right", cilian: "pos-off-right", phone: "pos-off-bottom", voucher: "pos-off-bottom", recycleBox: "pos-off-right" },
             status: "", progress: "", anim: []
         },
