@@ -113,19 +113,24 @@ img {
     margin-top: 10px;
 }
 
-/* 头像/物品框：改为方块形 */
+/* 头像/物品框：取消固定方块，让人物自由站立 */
 .element-icon {
-    width: 60px;
-    height: 60px;
-    background-color: #333 !important; /* 统一底色 */
-    border: 3px solid #fff !important; /* 强制白边框 */
+    height: 90px; /* 这里控制人物的整体高度，觉得小可以改成 100px 或更大 */
+    background-color: transparent !important; /* 去掉之前的灰色底色 */
+    border: none !important; /* 去掉白色边框 */
     display: flex;
     justify-content: center;
-    align-items: center;
-    font-size: 32px;
-    box-shadow: 4px 4px 0 #000;
+    align-items: flex-end; /* 底部对齐，让所有人脚踩在同一条线上 */
     margin-bottom: 8px;
-    overflow: hidden; /* 如果放入图片，确保不溢出 */
+    box-shadow: none; /* 去掉方块的阴影 */
+}
+
+/* 给图片加上游戏人物专属的轮廓阴影 */
+.element-icon img {
+    height: 100%;
+    width: auto;
+    object-fit: contain; /* 关键修复：保证图片完整显示，不被裁剪 */
+    filter: drop-shadow(4px 4px 0px #000); /* 绝赞的像素风人物轮廓阴影！ */
 }
 
 /* 状态提示框 */
@@ -254,29 +259,29 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
 
         <div id="user" class="element actor-user pos-off-left">
             <div class="element-icon">
-                <img src="/images/user.png" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="/images/user.png">
             </div>User
         </div>
         <div id="sophie" class="element actor-staff pos-off-right">
             <div class="element-icon">
-                <img src="/images/staff.png" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="/images/staff.png">
             </div>Sophie
         </div>
         <div id="clothes" class="element object-clothes pos-off-right">
             <div class="element-icon">
-                <img src="/images/clothes.png" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="/images/clothes.png">
             </div>Garment
         </div>
         <div id="cilian" class="element actor-staff pos-off-right">
             <div class="element-icon">
-            <img src="/images/deliver.png" style="width: 100%; height: 100%; object-fit: cover;"></div>Cilian</div>
+            <img src="/images/deliver.png"></div>Cilian</div>
         <div id="recycleBox" class="element pos-off-right">
             <div class="element-icon">
-                <img src="/images/bin.png" style="width: 100%; height: 100%; object-fit: cover;"></div>Smart Bin</div>
+                <img src="/images/bin.png"></div>Smart Bin</div>
         
         <div id="phone" class="element object-phone pos-off-bottom">
             <div class="element-icon">
-                <img src="/images/map.png" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="/images/map.png">
                 <div class="app-badge">1</div>
             </div>DRIP App
         </div>
