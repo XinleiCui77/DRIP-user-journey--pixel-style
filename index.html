@@ -300,7 +300,7 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
     
     <div class="controls" id="branch-controls">
         <button id="branchA" style="background-color: #FF9800;">A. Find Smart Bin (App Map)</button>
-        <button id="branchB" style="background-color: #2196F3;">B. Book Cilian (App Pickup)</button>
+        <button id="branchB" style="background-color: #2196F3;">B. Book Pickup & Delivery (App Pickup)</button>
     </div>
 </div>
 
@@ -470,16 +470,17 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
         }, 50);
         // --- 修复结束 ---
 
-        // Navigation logic
+        // Navigation logic (导航逻辑)
         prevBtn.disabled = stepIndex === 0;
         
         if (stepData.isBranch) {
             mainControls.style.display = "none";
             branchControls.style.display = "flex";
-            previousStepIndex = stepIndex; 
         } else {
             mainControls.style.display = "flex";
             branchControls.style.display = "none";
+            
+            // 如果当前在分支A(6)或分支B(7)，点击下一步都要去终点(8)
             if(stepIndex === 6 || stepIndex === 7) {
                 nextBtn.onclick = () => { updateStage(8); currentStep = 8; };
             } else {
@@ -487,23 +488,37 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
             }
         }
         currentStep = stepIndex;
-    }
+    } // <--- 这里是 updateStage 函数的结束括号，千万别漏了
 
+    // 默认的下一步逻辑
     const defaultNext = () => { if (currentStep < journeySteps.length - 1) updateStage(currentStep + 1); };
     nextBtn.onclick = defaultNext;
 
+    // 终极修复：带有智能记忆的后退按钮
     prevBtn.onclick = () => {
         if (currentStep > 0) {
-            if (currentStep === 6 || currentStep === 7) updateStage(previousStepIndex);
-            else updateStage(currentStep - 1);
+            if (currentStep === 6 || currentStep === 7) {
+                updateStage(5); // 如果在分支 A 或 B，后退回到分叉路口 (第5步)
+            } else if (currentStep === 8) {
+                updateStage(previousStepIndex); // 关键！如果在最后一页，查小本本，退回刚才走过的分支！
+            } else {
+                updateStage(currentStep - 1); // 正常的直线剧情，直接页码减一
+            }
         }
     };
 
-    document.getElementById('branchA').onclick = () => updateStage(6); 
-    document.getElementById('branchB').onclick = () => updateStage(7); 
+    // 关键修复：点击分支按钮时，不仅要跳转，还要在小本本(previousStepIndex)上记下刚走的路线序号
+    document.getElementById('branchA').onclick = () => { 
+        previousStepIndex = 6; 
+        updateStage(6); 
+    }; 
+    document.getElementById('branchB').onclick = () => { 
+        previousStepIndex = 7; 
+        updateStage(7); 
+    }; 
 
-    // Initialize
-    updateStage(1); 
+    // Initialize (初始化运行)
+    updateStage(0); // 这里我顺手帮你改成了 0，这样刷新网页后会从 Ready 也就是 DRIP 商店门外的第一步开始
 </script>
 </body>
 </html>
