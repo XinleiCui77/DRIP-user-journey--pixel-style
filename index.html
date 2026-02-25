@@ -429,38 +429,46 @@ button:disabled { background-color: #222; color: #555; border-color: #333; box-s
             statusBar.classList.remove('active');
         }
 
-        // Clean classes
+        // --- 修复开始 ---
+        // 同步清理并立即赋予新位置，消灭导致左上角闪烁的 50ms 空窗期
         elements.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                el.className = el.className.replace(/pos-\S+/g, '').replace('walking', '').replace('ringing', '').replace('show-badge', '').trim(); 
+                // 1. 清理各种乱七八糟的动画类
+                el.classList.remove('walking', 'ringing', 'show-badge'); 
+                
+                // 2. 找到旧的位置类并直接移除
+                const oldClasses = Array.from(el.classList).filter(c => c.startsWith('pos-'));
+                oldClasses.forEach(c => el.classList.remove(c));
+                
+                // 3. 立即赋予当前场景的新位置！无缝衔接！
+                if (stepData.positions[id]) {
+                    const newClasses = stepData.positions[id].split(' ');
+                    newClasses.forEach(cls => { if(cls) el.classList.add(cls); });
+                } else {
+                    // 如果当前场景没规定这个元素在哪，默认把它扔到左边场外隐藏
+                    el.classList.add('pos-off-left');
+                }
             }
         });
 
-        // Apply new classes and animations
+        // 抖动动画依然保留一点延迟，确保移动后再开始走路抖动
         setTimeout(() => {
-            for (const [id, posClass] of Object.entries(stepData.positions)) {
-                const el = document.getElementById(id);
-                if(el) {
-                    const classesToAdd = posClass.split(' ');
-                    classesToAdd.forEach(cls => { if(cls) el.classList.add(cls); });
-                    
-                    // Handle specific animations defined in stepData.anim array (e.g., 'user.walking', 'phone.show-badge')
-                    if (stepData.anim) {
-                        stepData.anim.forEach(animStr => {
-                            const [animId, animType] = animStr.split('.');
-                            if (animId === id) {
-                                el.classList.add(animType);
-                                // Stop continuous animations after duration
-                                if (animType === 'walking' || animType === 'ringing') {
-                                    setTimeout(() => el.classList.remove(animType), 1200);
-                                }
-                            }
-                        });
+            if (stepData.anim) {
+                stepData.anim.forEach(animStr => {
+                    const [animId, animType] = animStr.split('.');
+                    const el = document.getElementById(animId);
+                    if (el) {
+                        el.classList.add(animType);
+                        // 1.2秒后自动停止走路动画
+                        if (animType === 'walking' || animType === 'ringing') {
+                            setTimeout(() => el.classList.remove(animType), 1200);
+                        }
                     }
-                }
+                });
             }
         }, 50);
+        // --- 修复结束 ---
 
         // Navigation logic
         prevBtn.disabled = stepIndex === 0;
